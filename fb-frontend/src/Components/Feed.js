@@ -12,11 +12,23 @@ const Feed = () => {
     const [profilePic, setProfilePic] = useState('')
     const [postsData, setPostsData] = useState([])
 
-    useEffect(() => {
-        db.collection('posts').onSnapshot(snapshot => (
-            setPostsData(snapshot.docs.map(doc => ({ id: doc.id, data: doc.data() })))
-        ))
-    }, [])
+    // useEffect(() => {
+    //     db.collection('posts').onSnapshot(snapshot => (
+    //         setPostsData(snapshot.docs.map(doc => ({ id: doc.id, data: doc.data() })))
+    //     ))
+    // }, [])
+
+    const syncFeed = () =>{
+        axios.get('/api/retrieve/posts')
+        .then((res)=>{
+            console.log(res.data)
+            setPostsData(res.data)
+        })
+    }
+
+    useEffect(()=>{
+        syncFeed()
+    },[])
 
     return (
         <div className='feed' >

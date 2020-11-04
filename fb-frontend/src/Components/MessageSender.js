@@ -28,17 +28,50 @@ const MessageSender = () => {
     const handleSubmit = async (e) => {
         e.preventDefault()
 
-        db.collection('posts').add({
-            message: input,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            profilePic: user.photoURL,
-            username: user.displayName,
-            image: imageUrl
-        })
+        if (image){
+            const imgForm = new FormData()
+            imgForm.append('file', image, image.name)
+        
+            axios.post('/upload/image', imgForm, {
+                headers:{
+                    'accept': 'application/json',
+                    'Accept-language': "en-US, en;q=0.8",
+                    'Content-Type': `multipart/form-data; boundary=${imgForm._boundary}` 
+                }
+            }).then((res)=>{
+                console.log(res.data)
+
+                const postData = {
+                    text: input,
+                    imgName: res.data.filename,
+                    user: user.displayName,
+                    avatar: user.photoURL,
+                    timestamp: Date.now()
+                }
+                console.log(postData)
+                savePost(postData)
+            })
+        } else{
+            const postData = {
+                text: input,
+                user: user.displayName,
+                avatar: user.photoURL,
+                timestamp: Date.now()                
+            }
+            console.log(postData)
+            savePost(postData)
+        }
 
         setImageUrl('')
         setInput('')
         setImage(null)
+    }
+
+    const savePost = async (postData) => {
+        await axios.post('/upload/post', postData)
+        .then((resp)=>{
+            console.log(resp)
+        })
     }
 
     return (
