@@ -38,11 +38,40 @@ mongoose.connection.once('open', ()=>{
     console.log("DB connected")
 })
 
+let gfs
+
 conn.once('open', ()=>{
     console.log("DB connected")
+
+    gfs = Grid(conn.db, mongoose.mongo)
+    gfs.collection('images')
 })
+
+const storage = new GridFsStorage({
+    url: mongoURI,
+    file: (req, file)=>{
+        return new Promise((resolve, reject)=>{
+            const filename = `image-${Date.now()}${path.extname(file.originalname)}`
+
+            const fileInfo = {
+                filename: filename,
+                bucketname: 'images'
+            }
+
+            resolve(fileInfo)
+        })
+    }
+})
+
+const upload = multer({ storage })
+
 //api_routes
 app.get("/", (req, res)=> res.status(200).send("hello worlds"))
+app.post('/upload/image', upload.single('file'), (req, res)=>{
+    res.status(201).send(req.file)
+})
+
+
 
 //listen
 app.listen(port, ()=> console.log(`listening to : ${port}`))
